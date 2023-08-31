@@ -352,7 +352,8 @@ class SelectionScreen(Screen):
                 continue
 
             track = self.app.audio_tracks[row.key.value]
-            task = self.app.tasks.get(row.key.value, self.app.defaults)
+            task = self.app.defaults.copy()
+            task.update(self.app.tasks.get(row.key.value, {}))
 
             if track.get("encrypted", False):
                 self.set_row_status(row.key, TranscriptionStatus.FAILED)
@@ -428,7 +429,7 @@ class SelectionScreen(Screen):
                         )
 
                 if "prompt" in task:
-                    whisper_args.append("--prompt {}".format(quote(task["prompt"])))
+                    whisper_args.append("--initial_prompt {}".format(quote(task["prompt"])))
 
                 whisper_args.append(quote(audio_file))
 
