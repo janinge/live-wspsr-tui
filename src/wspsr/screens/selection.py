@@ -195,7 +195,7 @@ class SelectionScreen(Screen):
         yield Header()
         yield DataTable(id="filelist", fixed_columns=1)
         with VerticalScroll(classes="details"):
-            yield Pretty("Please select a file")
+            yield Pretty("Waiting for media files to make an appearance...")
         yield Button("Start", id="start", variant="success")
         yield RichLog(id="log", wrap=True, classes="tiny")
         yield Footer()
