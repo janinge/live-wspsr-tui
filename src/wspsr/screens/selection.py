@@ -23,11 +23,12 @@ from datetime import timedelta
 from enum import Enum
 from tempfile import TemporaryDirectory
 from os import chdir, path, makedirs
-from aioshutil import copytree, ignore_patterns
+from shutil import ignore_patterns
 from shlex import quote
 
 import asyncio
 from aiostream.stream import merge
+from aioshutil import copytree
 
 from wspsr.monitor import monitor_directory
 
