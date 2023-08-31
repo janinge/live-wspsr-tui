@@ -1,0 +1,104 @@
+.container {
+    height: auto;
+    width: auto;
+}
+
+Switch {
+    height: auto;
+    width: auto;
+}
+
+.label {
+    height: 3;
+    content-align: center middle;
+    width: auto;
+}
+
+#dialog {
+    height: 100%;
+    margin: 4 8;
+    padding: 1 2;
+}
+
+Button {
+    width: 1fr;
+}
+
+.information {
+    height: 60%;
+    content-align: center middle;
+}
+
+#status {
+    height: 1fr;
+}
+
+#next {
+    width: 100%;
+    height: auto;
+    dock: bottom;
+}
+
+#tabs {
+    max-height: 50%;
+}
+
+.sidebar {
+    dock: right;
+    width: 60%;
+    height: 100%;
+    padding-left: 1;
+}
+
+.tiny {
+    height: 3;
+    dock: bottom;
+    offset: 0 -1;
+    width: 100%;
+}
+
+SelectionScreen {
+    layers: bottom top;
+}
+
+.details {
+    padding-bottom: 4;
+}
+
+#start {
+    dock: bottom;
+    layer: top;
+    offset: 0 -1;
+}
+
+Footer {
+    layer: top;
+}
+
+#log {
+    background: black;
+    layer: bottom;
+}
+
+#dialog {
+    border: thick $background 80%;
+    background: $surface;
+}
+
+#inputs {
+    layout: grid;
+    grid-size: 2;
+    grid-gutter: 1 2;
+    grid-columns: 1fr 4fr;
+    grid-rows: 2fr 3fr;
+    align: center top;
+}
+
+Label {
+    width: 1fr;
+    content-align: right top;
+}
+
+.diarize {
+    visibility: visible;
+}

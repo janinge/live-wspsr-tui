@@ -1,0 +1,24 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "live-wspsr-tui"
+version = "0.0.1"
+authors = [
+  { name="Jan Inge Sande", email="j@ninge.no" },
+]
+description = "Terminal user interface for Whisper live distribution"
+readme = "README.md"
+requires-python = ">=3.11"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+]
+
+[project.urls]
+"Homepage" = "https://github.com/janinge/live-wspsr-tui"
+"Bug Tracker" = "https://github.com/janinge/live-wspsr-tui/issues"
