@@ -217,7 +217,7 @@ class SelectionScreen(Screen):
         info = self.query_one(Pretty)
         track = self.app.audio_tracks[event.row_key.value]
         task = self.app.tasks.get(event.row_key.value, {})
-        info.update((task, self.app.audio_tracks[event.row_key.value]))
+        info.update((task, track))
 
     def on_data_table_row_selected(self, event: DataTable.RowSelected) -> None:
         def check_options(options_results):
@@ -226,40 +226,35 @@ class SelectionScreen(Screen):
             # New defaults?
             if not target:
                 self.app.defaults = options
+                self.update_rows(data_table=event.data_table)
                 return
 
-            task = self.app.tasks.get(event.row_key.value, self.app.defaults.copy())
-            status = task.get("status", TranscriptionStatus.WAITING)
+            self.app.tasks[event.row_key.value] = options
+            self.update_rows(event.row_key, event.data_table)
+
+        self.app.push_screen(OptionsScreen(event.row_key.value), check_options)
+
+    def update_rows(self, row_keys=None, data_table=None):
+        if not data_table:
+            data_table = self.query_one(DataTable)
+
+        if not row_keys:
+            row_keys = data_table.rows.keys()
+        elif not hasattr(row_keys, '__iter__'):
+            row_keys = (row_keys, )
+
+        for row_key in row_keys:
+            task = self.get_row_task(row_key.value)
+            status = self.get_row_status(row_key.value)
 
             if (
-                "models" in options
-                and not options["models"]
+                "models" in task
+                and not task["models"]
                 and status == TranscriptionStatus.WAITING
             ):
                 status = TranscriptionStatus.SKIPPED
 
-            options["status"] = status
-
-            self.app.tasks[event.row_key.value] = options
-            self.update_row(event.row_key, event.data_table)
-
-        self.app.push_screen(OptionsScreen(event.row_key.value), check_options)
-
-    def update_row(self, row_key, data_table=None):
-        if not data_table:
-            data_table = self.query_one(DataTable)
-
-        task = self.app.tasks.get(row_key.value, self.app.defaults)
-        status = task.get("status", TranscriptionStatus.WAITING)
-
-        data_table.update_cell(row_key, "status", str(status.name).capitalize())
-
-        # Move to bottom if no action is pending
-        if status == TranscriptionStatus.SKIPPED:
-            row_cells = data_table.get_row(row_key)
-            data_table.remove_row(row_key)
-            data_table.add_row(*row_cells, key=row_key.value)
-            data_table.move_cursor(row=data_table.get_row_index(row_key), animate=True)
+            data_table.update_cell(row_key, "status", str(status.name).capitalize())
 
     def on_track_added(self, key, entry) -> None:
         self.app.audio_tracks[key] = entry
@@ -331,13 +326,27 @@ class SelectionScreen(Screen):
             self.process_queue()
             event.button.display = False
 
-    def set_row_status(self, row_key, status=TranscriptionStatus.WAITING):
-        task = self.app.tasks.setdefault(row_key.value, {})
-        task.update({"status": status})
-        self.update_row(row_key)
+    def get_row_task(self, row_key: object | str) -> dict[str, str | list]:
+        if not isinstance(row_key, str):
+            row_key = row_key.value
 
-    def get_row_status(self, row_key):
-        task = self.app.tasks.setdefault(row_key.value, self.app.defaults.copy())
+        task = self.app.defaults.copy()
+        task.update(self.app.tasks.get(row_key, {}))
+        return task
+
+    def set_row_status(self, row_key: object | str, status: TranscriptionStatus = TranscriptionStatus.WAITING) -> None:
+        if not isinstance(row_key, str):
+            row_key = row_key.value
+        
+        task = self.app.tasks.setdefault(row_key, {})
+        task.update({"status": status})
+        self.update_rows(row_key)
+
+    def get_row_status(self, row_key: object | str) -> TranscriptionStatus:
+        if not isinstance(row_key, str):
+            row_key = row_key.value
+
+        task = self.get_row_task(row_key)
         return task.get("status", TranscriptionStatus.WAITING)
 
     @work(exclusive=True)
@@ -353,8 +362,7 @@ class SelectionScreen(Screen):
                 continue
 
             track = self.app.audio_tracks[row.key.value]
-            task = self.app.defaults.copy()
-            task.update(self.app.tasks.get(row.key.value, {}))
+            task = self.get_row_task(row.key.value, {})
 
             if track.get("encrypted", False):
                 self.set_row_status(row.key, TranscriptionStatus.FAILED)
