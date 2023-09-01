@@ -362,7 +362,7 @@ class SelectionScreen(Screen):
                 continue
 
             track = self.app.audio_tracks[row.key.value]
-            task = self.get_row_task(row.key.value, {})
+            task = self.get_row_task(row.key.value)
 
             if track.get("encrypted", False):
                 self.set_row_status(row.key, TranscriptionStatus.FAILED)
