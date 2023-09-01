@@ -1,7 +1,7 @@
 from textual.app import App
 from textual.logging import TextualHandler
 
-from wspsr.screens.selection import SelectionScreen
+from screens.selection import SelectionScreen
 
 import logging
 
