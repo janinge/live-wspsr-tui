@@ -244,8 +244,9 @@ class SelectionScreen(Screen):
             row_keys = (row_keys, )
 
         for row_key in row_keys:
-            task = self.get_row_task(row_key.value)
-            status = self.get_row_status(row_key.value)
+            index = row_key.value if hasattr(row_key, 'value') else row_key
+            task = self.get_row_task(index)
+            status = self.get_row_status(index)
 
             if (
                 "models" in task
