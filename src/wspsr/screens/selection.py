@@ -65,11 +65,17 @@ class OptionsScreen(ModalScreen[dict]):
         name: str | None = None,
         id: str | None = None,
         classes: str | None = None,
+        options: dict[str, str | int | dict] | None = {}
     ):
         super().__init__(name, id, classes)
-        self.options = {}
+        self.options = options
 
     def compose(self) -> ComposeResult:
+        models = self.options.get("models", {})
+        min_speakers = self.options.get("min_speakers", 1)
+        max_speakers = self.options.get("max_speakers")
+        prompt = self.options.get("prompt", "")
+
         yield Vertical(
             VerticalScroll(
                 Grid(
@@ -77,27 +83,27 @@ class OptionsScreen(ModalScreen[dict]):
                     Label(self.name),
                     Label("Models used"),
                     SelectionList[str](
-                        Selection("OpenAI large-v2", "large-v2", True),
-                        Selection("NB AI-Lab large-beta", "nb-large"),
-                        Selection("Diarization", "diarize", True),
+                        Selection("OpenAI large-v2", "large-v2", "large-v2" in models),
+                        Selection("NB AI-Lab large-beta", "nb-large", "nb-large" in models),
+                        Selection("Diarization", "diarize", "diarize" in models),
                         id="models",
                     ),
                     Label("Minimum speakers", classes="diarize"),
                     Input(
-                        placeholder="1",
+                        placeholder=str(min_speakers),
                         id="min_speakers",
                         classes="diarize",
                         validators=[Integer(minimum=1)],
                     ),
                     Label("Maximum speakers", classes="diarize"),
                     Input(
-                        placeholder="Infinite",
+                        placeholder=str(max_speakers) if max_speakers else "Infinite",
                         id="max_speakers",
                         classes="diarize",
                         validators=[Integer(minimum=1)],
                     ),
                     Label("Prompt"),
-                    Input(id="prompt"),
+                    Input(id="prompt", placeholder=prompt),
                     id="inputs",
                 ),
             ),
@@ -230,18 +236,17 @@ class SelectionScreen(Screen):
                 return
 
             self.app.tasks[event.row_key.value] = options
-            self.update_rows(event.row_key, event.data_table)
+            self.update_rows(event.row_key, data_table=event.data_table)
 
-        self.app.push_screen(OptionsScreen(event.row_key.value), check_options)
+        self.app.push_screen(OptionsScreen(event.row_key.value, options=self.get_row_task(event.row_key.value)),
+                             check_options)
 
-    def update_rows(self, row_keys=None, data_table=None):
+    def update_rows(self, *row_keys, data_table=None):
         if not data_table:
             data_table = self.query_one(DataTable)
 
         if not row_keys:
             row_keys = data_table.rows.keys()
-        elif not hasattr(row_keys, '__iter__'):
-            row_keys = (row_keys, )
 
         for row_key in row_keys:
             index = row_key.value if hasattr(row_key, 'value') else row_key
