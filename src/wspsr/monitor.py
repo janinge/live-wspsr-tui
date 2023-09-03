@@ -8,6 +8,7 @@ from watchdog.events import FileSystemEventHandler
 from pymediainfo import MediaInfo
 
 from os import lstat
+from time import sleep
 from multiprocessing import Process, Queue
 from queue import Empty
 from mimetypes import guess_type
@@ -42,13 +43,12 @@ def peek_worker(input_queue, output_queue):
                         if entry_mime.startswith('audio/') or entry_mime.startswith('video/'):
                             observation = observation.copy()
                             try:
-                                for block in entry.get_blocks():
+                                for _ in entry.get_blocks():
                                     break
                             except libarchive.exception.ArchiveError as e:
                                 if 'encrypted' in e.msg.lower() or 'passphrase' in e.msg.lower():
                                     observation['encrypted'] = True
                                 else:
-                                    print("Entry error", e)
                                     raise e
 
                             observation.update({
@@ -59,7 +59,7 @@ def peek_worker(input_queue, output_queue):
                             })
                             output_queue.put(observation)
 
-        except libarchive.exception.ArchiveError as e:
+        except libarchive.exception.ArchiveError:
             continue
 
 
@@ -71,7 +71,8 @@ class MountsDirectoryHandler(FileSystemEventHandler):
         self.queue_new_files()
 
     def on_any_event(self, event):
-        print(event)
+        # FIXME: Mounts are done after directories are created, so just wait a little bit for now
+        sleep(1)
         self.queue_new_files()
 
     def queue_new_files(self):
@@ -112,8 +113,3 @@ def monitor_directory(path, worker=None):
         if peek_process.exitcode is None:
             peek_process.kill()
         mount_observer.join()
-
-
-if __name__ == "__main__":
-    for row in monitor_directory("../media"):
-        print(row)
